@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTech Budget</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f7ff;
+  color:#172b4d;
+}
+header{
+  background:#0755c9;
+  color:white;
+  padding:24px 18px;
+  border-radius:0 0 22px 22px;
+}
+header h1{margin:0}
+main{padding:18px;max-width:700px;margin:auto}
+.card{
+  background:white;
+  padding:18px;
+  border-radius:15px;
+  margin:14px 0;
+  box-shadow:0 3px 12px #dce5f3;
+}
+.balance{font-size:30px;font-weight:bold}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:#eaf2ff;padding:14px;border-radius:12px}
+input,select,button{
+  width:100%;padding:13px;margin:7px 0;
+  border-radius:9px;border:1px solid #ccd6e5;
+  font-size:15px;
+}
+button{
+  background:#0755c9;color:white;
+  border:0;font-weight:bold;
+}
+.ad{
+  background:#e8effb;border:1px dashed #7d9bc8;
+  text-align:center;padding:22px;border-radius:12px;
+  color:#49658b;
+}
+small{color:#60718b}
+</style>
+</head>
+<body>
+
+<header>
+<h1>GTech Budget</h1>
+<p>Manage your money. Build your future.</p>
+</header>
+
+<main>
+
+<div class="card">
+<small>TOTAL BALANCE</small>
+<div class="balance" id="balance">₦0.00</div>
+</div>
+
+<div class="stats">
+<div class="stat">
+<small>INCOME</small>
+<h2 id="income">₦0</h2>
+</div>
+<div class="stat">
+<small>EXPENSES</small>
+<h2 id="expenses">₦0</h2>
+</div>
+</div>
+
+<div class="card">
+<h3>Add a transaction</h3>
+<input id="description" placeholder="Description">
+<input id="amount" type="number" min="0.01" step="0.01" placeholder="Amount (₦)">
+<select id="type">
+<option value="income">Income</option>
+<option value="expense">Expense</option>
+</select>
+<button onclick="addTransaction()">Add transaction</button>
+</div>
+
+<div class="card">
+<h3>Savings goal</h3>
+<input id="goal" type="number" min="0" placeholder="Your savings target (₦)">
+<button onclick="saveGoal()">Save goal</button>
+<p id="goalText">Set your savings target.</p>
+</div>
+
+<div class="card">
+<h3>Recent transactions</h3>
+<div id="transactions">No transactions yet.</div>
+</div>
+
+<div class="card">
+<h3>Advertisement</h3>
+<div class="ad">
+Advertisement space<br>
+<small>Approved ads can appear here later.</small>
+</div>
+</div>
+
+</main>
+
+<script>
+let transactions = JSON.parse(
+ localStorage.getItem("gtechTransactions") || "[]"
+);
+let goal = Number(localStorage.getItem("gtechGoal") || 0);
+
+function money(n){
+ return "₦" + n.toLocaleString("en-NG",{
+ minimumFractionDigits:2,
+ maximumFractionDigits:2
+ });
+}
+
+function render(){
+ let income = transactions
+ .filter(t=>t.type==="income")
+ .reduce((s,t)=>s+t.amount,0);
+
+ let expenses = transactions
+ .filter(t=>t.type==="expense")
+ .reduce((s,t)=>s+t.amount,0);
+
+ document.getElementById("balance").textContent=money(income-expenses);
+ document.getElementById("income").textContent=money(income);
+ document.getElementById("expenses").textContent=money(expenses);
+
+ document.getElementById("transactions").innerHTML=
+ transactions.length ? transactions.map(t=>
+ `<p>${escapeHTML(t.description)} — ${money(t.amount)}
+ <small>(${t.type})</small></p>`
+ ).join("") : "No transactions yet.";
+
+ document.getElementById("goalText").textContent=
+ goal ? "Savings target: "+money(goal) : "Set your savings target.";
+}
+
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function addTransaction(){
+ let description=document.getElementById("description").value.trim();
+ let amount=Number(document.getElementById("amount").value);
+ let type=document.getElementById("type").value;
+
+ if(!description || !Number.isFinite(amount) || amount<=0){
+  alert("Enter a description and a valid amount.");
+  return;
+ }
+
+ transactions.unshift({description,amount,type});
+ localStorage.setItem("gtechTransactions",JSON.stringify(transactions));
+
+ document.getElementById("description").value="";
+ document.getElementById("amount").value="";
+ render();
+}
+
+function saveGoal(){
+ let value=Number(document.getElementById("goal").value);
+ if(!Number.isFinite(value) || value<=0){
+  alert("Enter a valid savings target.");
+  return;
+ }
+ goal=value;
+ localStorage.setItem("gtechGoal",goal);
+ render();
+}
+
+document.getElementById("goal").value=goal || "";
+render();
+</script>
+
+</body>
+  </html>
+  
