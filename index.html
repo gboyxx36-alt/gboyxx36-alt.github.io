@@ -3,185 +3,238 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GTech Budget</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GTech Money</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f3f7ff;
-  color:#172b4d;
-}
-header{
-  background:#0755c9;
-  color:white;
-  padding:24px 18px;
-  border-radius:0 0 22px 22px;
-}
-header h1{margin:0}
-main{padding:18px;max-width:700px;margin:auto}
-.card{
-  background:white;
-  padding:18px;
-  border-radius:15px;
-  margin:14px 0;
-  box-shadow:0 3px 12px #dce5f3;
-}
-.balance{font-size:30px;font-weight:bold}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stat{background:#eaf2ff;padding:14px;border-radius:12px}
-input,select,button{
-  width:100%;padding:13px;margin:7px 0;
-  border-radius:9px;border:1px solid #ccd6e5;
-  font-size:15px;
-}
-button{
-  background:#0755c9;color:white;
-  border:0;font-weight:bold;
-}
-.ad{
-  background:#e8effb;border:1px dashed #7d9bc8;
-  text-align:center;padding:22px;border-radius:12px;
-  color:#49658b;
-}
-small{color:#60718b}
+body{margin:0;background:#f2f5fb;color:#17243b;font-family:Arial,sans-serif}
+header{background:#0754c7;color:white;padding:24px 18px;border-radius:0 0 23px 23px}
+header strong{font-size:25px}
+header p{font-size:13px}
+main{max-width:650px;margin:auto;padding:17px}
+.card{background:white;padding:17px;border-radius:15px;margin:12px 0;box-shadow:0 3px 12px #00000008}
+.balance{background:linear-gradient(130deg,#0754c7,#1688ef);color:white;padding:23px;border-radius:18px}
+.big{font-size:30px;font-weight:bold;margin:12px 0}
+.stats,.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+small{color:#78869b}
+strong.value{display:block;font-size:18px;margin-top:8px}
+h3{font-size:17px;margin:24px 0 10px}
+button{border:0;background:#0754c7;color:white;padding:13px;border-radius:10px;font-weight:bold;cursor:pointer}
+.light{background:#e8f0ff;color:#0754c7}
+input{width:100%;padding:13px;border:1px solid #dce3ef;border-radius:9px;margin:7px 0 13px;font-size:15px}
+label{font-size:13px;color:#52617a}
+.hidden{display:none}
+.row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf0f5}
+.green{color:#07965b}
+.red{color:#d74455}
+.blue{color:#0875ce}
+.notice{background:#fff5d9;padding:12px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:15px}
+.bar{height:9px;background:#e5ebf4;border-radius:10px;margin-top:12px;overflow:hidden}
+.fill{height:100%;background:#0875df;width:0}
+footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
 </style>
 </head>
 <body>
-
 <header>
-<h1>GTech Budget</h1>
-<p>Manage your money. Build your future.</p>
+<strong>GTech Money</strong>
+<p>Your money. Your progress.</p>
 </header>
 
 <main>
-
-<div class="card">
-<small>TOTAL BALANCE</small>
-<div class="balance" id="balance">₦0.00</div>
+<div class="balance">
+<small style="color:white">Available demo balance</small>
+<div class="big" id="balance">₦0.00</div>
+<small style="color:white">Personal finance tracker</small>
 </div>
 
 <div class="stats">
-<div class="stat">
-<small>INCOME</small>
-<h2 id="income">₦0</h2>
-</div>
-<div class="stat">
-<small>EXPENSES</small>
-<h2 id="expenses">₦0</h2>
-</div>
+<div class="card"><small>Total income</small><strong class="value green" id="income">₦0</strong></div>
+<div class="card"><small>Total expenses</small><strong class="value red" id="expenses">₦0</strong></div>
+<div class="card"><small>Transfers recorded</small><strong class="value" id="transferCount">0</strong></div>
+<div class="card"><small>Cashback earned</small><strong class="value blue" id="cashback">₦0</strong></div>
 </div>
 
-<div class="card">
-<h3>Add a transaction</h3>
-<input id="description" placeholder="Description">
-<input id="amount" type="number" min="0.01" step="0.01" placeholder="Amount (₦)">
-<select id="type">
-<option value="income">Income</option>
-<option value="expense">Expense</option>
-</select>
-<button onclick="addTransaction()">Add transaction</button>
+<h3>Quick actions</h3>
+<div class="actions">
+<button onclick="openForm('income')">+ Add income</button>
+<button class="light" onclick="openForm('expense')">− Add expense</button>
+<button class="light" onclick="openForm('transfer')">↗ Demo transfer</button>
+<button class="light" onclick="showRewards()">★ Cashback</button>
 </div>
 
+<div class="card hidden" id="formPanel">
+<h3 id="formTitle">Add transaction</h3>
+<form id="transactionForm">
+<label>Description or recipient</label>
+<input id="description" required placeholder="Enter description">
+<label>Amount (₦)</label>
+<input id="amount" type="number" min="1" step="0.01" required placeholder="Enter amount">
+<button type="submit">Save</button>
+<button type="button" class="light" onclick="closeForm()">Cancel</button>
+</form>
+</div>
+
+<h3>Cashback services</h3>
 <div class="card">
-<h3>Savings goal</h3>
-<input id="goal" type="number" min="0" placeholder="Your savings target (₦)">
+<small>Total demo cashback</small>
+<div class="big blue" id="rewardTotal">₦0.00</div>
+<p>Transfer ₦5,000 or more to qualify for ₦50 demo cashback.</p>
+<div class="notice">Cashback is only simulated in this version. No real transfer or reward payment takes place.</div>
+<h3>Cashback history</h3>
+<div id="rewardHistory">No cashback yet.</div>
+</div>
+
+<h3>My savings goal</h3>
+<div class="card">
+<label>Goal name</label>
+<input id="goalName" placeholder="e.g. New laptop">
+<label>Target amount (₦)</label>
+<input id="goalTarget" type="number" min="1" placeholder="Target amount">
+<label>Amount saved (₦)</label>
+<input id="goalSaved" type="number" min="0" placeholder="Amount saved">
 <button onclick="saveGoal()">Save goal</button>
-<p id="goalText">Set your savings target.</p>
+<p id="goalDisplay">No savings goal yet.</p>
+<div class="bar"><div class="fill" id="goalFill"></div></div>
 </div>
 
-<div class="card">
-<h3>Recent transactions</h3>
-<div id="transactions">No transactions yet.</div>
-</div>
+<h3>Transaction history</h3>
+<div class="card" id="history">No transactions yet.</div>
 
-<div class="card">
-<h3>Advertisement</h3>
-<div class="ad">
-Advertisement space<br>
-<small>Approved ads can appear here later.</small>
+<div class="notice">
+<strong>Important:</strong> GTech Money is currently a personal finance demo. It does not hold money, send real transfers or pay real cashback. Real payment services require a licensed payment partner.
 </div>
-</div>
-
+<footer>GTech Money © 2026</footer>
 </main>
 
 <script>
-let transactions = JSON.parse(
- localStorage.getItem("gtechTransactions") || "[]"
-);
-let goal = Number(localStorage.getItem("gtechGoal") || 0);
+let records=JSON.parse(localStorage.getItem("gtRecords")||"[]");
+let rewards=JSON.parse(localStorage.getItem("gtRewards")||"[]");
+let goal=JSON.parse(localStorage.getItem("gtGoal")||"null");
+let currentType="income";
 
 function money(n){
- return "₦" + n.toLocaleString("en-NG",{
- minimumFractionDigits:2,
- maximumFractionDigits:2
- });
+ return "₦"+Number(n).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+function saveData(){
+ localStorage.setItem("gtRecords",JSON.stringify(records));
+ localStorage.setItem("gtRewards",JSON.stringify(rewards));
+}
+function openForm(type){
+ currentType=type;
+ document.getElementById("formTitle").textContent=
+ type==="income"?"Add income":type==="expense"?"Add expense":"Record demo transfer";
+ document.getElementById("formPanel").classList.remove("hidden");
+}
+function closeForm(){
+ document.getElementById("formPanel").classList.add("hidden");
+}
+document.getElementById("transactionForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ let description=document.getElementById("description").value.trim();
+ let amount=Number(document.getElementById("amount").value);
+ if(!description||!Number.isFinite(amount)||amount<=0)return;
 
+ records.unshift({
+  description:description,
+  amount:amount,
+  type:currentType,
+  date:new Date().toLocaleString()
+ });
+
+ if(currentType==="transfer" && amount>=5000){
+  rewards.unshift({
+   amount:50,
+   description:"₦50 demo reward for transfer of "+money(amount),
+   date:new Date().toLocaleString()
+  });
+  alert("Qualifying demo transfer recorded! ₦50 demo cashback added.");
+ }else if(currentType==="transfer"){
+  alert("Demo transfer recorded. Transfers below ₦5,000 do not qualify for cashback.");
+ }
+
+ saveData();
+ this.reset();
+ closeForm();
+ render();
+});
+
+function showRewards(){
+ document.getElementById("rewardTotal").scrollIntoView({behavior:"smooth"});
+}
+function saveGoal(){
+ let name=document.getElementById("goalName").value.trim();
+ let target=Number(document.getElementById("goalTarget").value);
+ let saved=Number(document.getElementById("goalSaved").value);
+ if(!name||!Number.isFinite(target)||target<=0||!Number.isFinite(saved)||saved<0){
+  alert("Enter a goal name and valid amounts.");
+  return;
+ }
+ goal={name,target,saved};
+ localStorage.setItem("gtGoal",JSON.stringify(goal));
+ renderGoal();
+}
+function renderGoal(){
+ if(!goal)return;
+ document.getElementById("goalName").value=goal.name;
+ document.getElementById("goalTarget").value=goal.target;
+ document.getElementById("goalSaved").value=goal.saved;
+ document.getElementById("goalDisplay").textContent=
+ goal.name+": "+money(goal.saved)+" saved of "+money(goal.target);
+ document.getElementById("goalFill").style.width=
+ Math.min(100,goal.saved/goal.target*100)+"%";
+}
 function render(){
- let income = transactions
- .filter(t=>t.type==="income")
- .reduce((s,t)=>s+t.amount,0);
-
- let expenses = transactions
- .filter(t=>t.type==="expense")
- .reduce((s,t)=>s+t.amount,0);
-
+ let income=0,expenses=0,transfers=0;
+ records.forEach(r=>{
+  if(r.type==="income")income+=r.amount;
+  if(r.type==="expense")expenses+=r.amount;
+  if(r.type==="transfer")transfers++;
+ });
+ let total=rewards.reduce((sum,r)=>sum+r.amount,0);
  document.getElementById("balance").textContent=money(income-expenses);
  document.getElementById("income").textContent=money(income);
  document.getElementById("expenses").textContent=money(expenses);
+ document.getElementById("transferCount").textContent=transfers;
+ document.getElementById("cashback").textContent=money(total);
+ document.getElementById("rewardTotal").textContent=money(total);
 
- document.getElementById("transactions").innerHTML=
- transactions.length ? transactions.map(t=>
- `<p>${escapeHTML(t.description)} — ${money(t.amount)}
- <small>(${t.type})</small></p>`
- ).join("") : "No transactions yet.";
+ let history=document.getElementById("history");
+ history.innerHTML="";
+ if(records.length===0)history.textContent="No transactions yet.";
+ records.forEach(r=>{
+  let item=document.createElement("div");
+  item.className="row";
+  let left=document.createElement("div");
+  let name=document.createElement("strong");
+  name.textContent=r.description;
+  let date=document.createElement("small");
+  date.textContent=r.date;
+  date.style.display="block";
+  left.append(name,date);
+  let right=document.createElement("strong");
+  right.textContent=(r.type==="income"?"+":r.type==="expense"?"-":"Transfer ")+money(r.amount);
+  right.className=r.type==="income"?"green":r.type==="expense"?"red":"blue";
+  item.append(left,right);
+  history.append(item);
+ });
 
- document.getElementById("goalText").textContent=
- goal ? "Savings target: "+money(goal) : "Set your savings target.";
+ let rewardHistory=document.getElementById("rewardHistory");
+ rewardHistory.innerHTML="";
+ if(rewards.length===0)rewardHistory.textContent="No cashback yet.";
+ rewards.forEach(r=>{
+  let item=document.createElement("div");
+  item.className="row";
+  let left=document.createElement("div");
+  left.textContent=r.description;
+  let right=document.createElement("strong");
+  right.className="green";
+  right.textContent="+"+money(r.amount);
+  item.append(left,right);
+  rewardHistory.append(item);
+ });
 }
-
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
- "&":"&amp;","<":"&lt;",">":"&gt;",
- '"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-function addTransaction(){
- let description=document.getElementById("description").value.trim();
- let amount=Number(document.getElementById("amount").value);
- let type=document.getElementById("type").value;
-
- if(!description || !Number.isFinite(amount) || amount<=0){
-  alert("Enter a description and a valid amount.");
-  return;
- }
-
- transactions.unshift({description,amount,type});
- localStorage.setItem("gtechTransactions",JSON.stringify(transactions));
-
- document.getElementById("description").value="";
- document.getElementById("amount").value="";
- render();
-}
-
-function saveGoal(){
- let value=Number(document.getElementById("goal").value);
- if(!Number.isFinite(value) || value<=0){
-  alert("Enter a valid savings target.");
-  return;
- }
- goal=value;
- localStorage.setItem("gtechGoal",goal);
- render();
-}
-
-document.getElementById("goal").value=goal || "";
 render();
+renderGoal();
 </script>
-
 </body>
-  </html>
-  
+</html>
