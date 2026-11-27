@@ -2,12 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- 
-<script src="https://quge5.com/88/tag.min.js" data-zone="315306" async data-cfasync="false"></script>
- 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GTech Money</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f2f5fb;color:#17243b;font-family:Arial,sans-serif}
@@ -26,7 +24,7 @@ button{border:0;background:#0754c7;color:white;padding:13px;border-radius:10px;f
 .light{background:#e8f0ff;color:#0754c7}
 input{width:100%;padding:13px;border:1px solid #dce3ef;border-radius:9px;margin:7px 0 13px;font-size:15px}
 label{font-size:13px;color:#52617a}
-.hidden{display:none}
+.hidden{display:none!important}
 .row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf0f5}
 .green{color:#07965b}
 .red{color:#d74455}
@@ -35,15 +33,56 @@ label{font-size:13px;color:#52617a}
 .bar{height:9px;background:#e5ebf4;border-radius:10px;margin-top:12px;overflow:hidden}
 .fill{height:100%;background:#0875df;width:0}
 footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
+#authMessage{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.auth-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#googleBtn{width:100%;margin-top:10px}
+#logoutBtn{float:right}
 </style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
+
 <body>
+
 <header>
 <strong>GTech Money</strong>
 <p>Your money. Your progress.</p>
 </header>
 
 <main>
+
+<!-- LOGIN AND REGISTRATION -->
+<div class="card" id="authPanel">
+<h3>Welcome to GTech Money</h3>
+<p>Create an account or sign in to continue.</p>
+
+<label>Email address</label>
+<input id="email" type="email" placeholder="Enter your email" autocomplete="email">
+
+<label>Password</label>
+<input id="password" type="password" placeholder="Enter your password" autocomplete="current-password">
+
+<div class="auth-buttons">
+<button id="signupBtn" type="button">Create account</button>
+<button class="light" id="loginBtn" type="button">Sign in</button>
+</div>
+
+<button id="googleBtn" type="button">Continue with Google</button>
+<p id="authMessage" role="status"></p>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div id="appContent" class="hidden">
+
+<div class="card">
+<strong id="welcomeUser">Welcome!</strong>
+<button id="logoutBtn" class="light" type="button">Sign out</button>
+<div style="clear:both"></div>
+</div>
+
 <div class="balance">
 <small style="color:white">Available demo balance</small>
 <div class="big" id="balance">₦0.00</div>
@@ -82,7 +121,7 @@ footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
 <small>Total demo cashback</small>
 <div class="big blue" id="rewardTotal">₦0.00</div>
 <p>Transfer ₦5,000 or more to qualify for ₦50 demo cashback.</p>
-<div class="notice">Cashback is only simulated in this version. No real transfer or reward payment takes place.</div>
+<div class="notice">Cashback is simulated only. No real transfer or reward payment takes place.</div>
 <h3>Cashback history</h3>
 <div id="rewardHistory">No cashback yet.</div>
 </div>
@@ -95,7 +134,7 @@ footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
 <input id="goalTarget" type="number" min="1" placeholder="Target amount">
 <label>Amount saved (₦)</label>
 <input id="goalSaved" type="number" min="0" placeholder="Amount saved">
-<button onclick="saveGoal()">Save goal</button>
+<button id="saveGoalBtn" type="button">Save goal</button>
 <p id="goalDisplay">No savings goal yet.</p>
 <div class="bar"><div class="fill" id="goalFill"></div></div>
 </div>
@@ -104,140 +143,349 @@ footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
 <div class="card" id="history">No transactions yet.</div>
 
 <div class="notice">
-<strong>Important:</strong> GTech Money is currently a personal finance demo. It does not hold money, send real transfers or pay real cashback. Real payment services require a licensed payment partner.
+<strong>Important:</strong> GTech Money is a personal finance demo. It does not hold money, send real transfers or pay real cashback. Real payment services require a licensed payment partner.
 </div>
+
+</div>
+
 <footer>GTech Money © 2026</footer>
 </main>
 
 <script>
-let records=JSON.parse(localStorage.getItem("gtRecords")||"[]");
-let rewards=JSON.parse(localStorage.getItem("gtRewards")||"[]");
-let goal=JSON.parse(localStorage.getItem("gtGoal")||"null");
-let currentType="income";
+/* YOUR FIREBASE CONFIGURATION */
+const firebaseConfig = {
+ apiKey: "AIzaSyCvKoVkAx42b472McLgToVK7XQDEgwhpNU",
+ authDomain: "gtech-gub.firebaseapp.com",
+ projectId: "gtech-gub",
+ storageBucket: "gtech-gub.firebasestorage.app",
+ messagingSenderId: "444882764575",
+ appId: "1:444882764575:web:d561cd8e9ef95ce8b3a62a"
+};
+
+/* CONNECT TO FIREBASE */
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+let records = [];
+let rewards = [];
+let goal = null;
+let currentType = "income";
+let currentUser = null;
+
+const $ = id => document.getElementById(id);
 
 function money(n){
- return "₦"+Number(n).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function saveData(){
- localStorage.setItem("gtRecords",JSON.stringify(records));
- localStorage.setItem("gtRewards",JSON.stringify(rewards));
-}
-function openForm(type){
- currentType=type;
- document.getElementById("formTitle").textContent=
- type==="income"?"Add income":type==="expense"?"Add expense":"Record demo transfer";
- document.getElementById("formPanel").classList.remove("hidden");
-}
-function closeForm(){
- document.getElementById("formPanel").classList.add("hidden");
-}
-document.getElementById("transactionForm").addEventListener("submit",function(e){
- e.preventDefault();
- let description=document.getElementById("description").value.trim();
- let amount=Number(document.getElementById("amount").value);
- if(!description||!Number.isFinite(amount)||amount<=0)return;
-
- records.unshift({
-  description:description,
-  amount:amount,
-  type:currentType,
-  date:new Date().toLocaleString()
+ return "₦"+Number(n).toLocaleString("en-NG",{
+  minimumFractionDigits:2,
+  maximumFractionDigits:2
  });
+}
 
- if(currentType==="transfer" && amount>=5000){
-  rewards.unshift({
-   amount:50,
-   description:"₦50 demo reward for transfer of "+money(amount),
-   date:new Date().toLocaleString()
-  });
-  alert("Qualifying demo transfer recorded! ₦50 demo cashback added.");
- }else if(currentType==="transfer"){
-  alert("Demo transfer recorded. Transfers below ₦5,000 do not qualify for cashback.");
+function showMessage(message){
+ $("authMessage").textContent = message;
+}
+
+function setAuthBusy(busy){
+ ["signupBtn","loginBtn","googleBtn"].forEach(id=>{
+  $(id).disabled = busy;
+ });
+}
+
+async function register(){
+ const email = $("email").value.trim();
+ const password = $("password").value;
+
+ if(!email || password.length < 6){
+  showMessage("Enter a valid email and a password of at least 6 characters.");
+  return;
  }
 
- saveData();
- this.reset();
- closeForm();
- render();
+ try{
+  setAuthBusy(true);
+  await auth.createUserWithEmailAndPassword(email,password);
+  showMessage("Account created successfully.");
+ }catch(error){
+  showMessage(error.message);
+ }finally{
+  setAuthBusy(false);
+ }
+}
+
+async function login(){
+ const email = $("email").value.trim();
+ const password = $("password").value;
+
+ if(!email || !password){
+  showMessage("Enter your email and password.");
+  return;
+ }
+
+ try{
+  setAuthBusy(true);
+  await auth.signInWithEmailAndPassword(email,password);
+ }catch(error){
+  showMessage(error.message);
+ }finally{
+  setAuthBusy(false);
+ }
+}
+
+async function googleLogin(){
+ try{
+  setAuthBusy(true);
+  await auth.signInWithRedirect(googleProvider);
+ }catch(error){
+  showMessage(error.message);
+  setAuthBusy(false);
+ }
+}
+
+async function logout(){
+ await auth.signOut();
+}
+
+$("signupBtn").addEventListener("click",register);
+$("loginBtn").addEventListener("click",login);
+$("googleBtn").addEventListener("click",googleLogin);
+$("logoutBtn").addEventListener("click",logout);
+
+auth.onAuthStateChanged(async user=>{
+ currentUser = user;
+
+ if(!user){
+  $("authPanel").classList.remove("hidden");
+  $("appContent").classList.add("hidden");
+  return;
+ }
+
+ try{
+  $("authPanel").classList.add("hidden");
+  $("appContent").classList.remove("hidden");
+  $("welcomeUser").textContent = "Welcome, "+(user.displayName || user.email || "User");
+
+  const profile = db.collection("users").doc(user.uid);
+
+  await profile.set({
+   email:user.email || "",
+   displayName:user.displayName || "",
+   updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+
+  await loadData();
+  render();
+  renderGoal();
+
+ }catch(error){
+  alert("Could not load your cloud data: "+error.message);
+ }
+});
+
+function userCollection(name){
+ if(!currentUser) throw new Error("Please sign in first.");
+ return db.collection("users").doc(currentUser.uid).collection(name);
+}
+
+async function loadData(){
+ const [transactionDocs,rewardDocs,goalDoc] = await Promise.all([
+  userCollection("transactions").orderBy("createdAt","desc").get(),
+  userCollection("rewards").orderBy("createdAt","desc").get(),
+  userCollection("settings").doc("goal").get()
+ ]);
+
+ records = transactionDocs.docs.map(doc=>doc.data());
+ rewards = rewardDocs.docs.map(doc=>doc.data());
+ goal = goalDoc.exists ? goalDoc.data() : null;
+}
+
+function openForm(type){
+ currentType = type;
+ $("formTitle").textContent =
+  type==="income" ? "Add income" :
+  type==="expense" ? "Add expense" :
+  "Record demo transfer";
+ $("formPanel").classList.remove("hidden");
+}
+
+function closeForm(){
+ $("formPanel").classList.add("hidden");
+}
+
+$("transactionForm").addEventListener("submit",async function(e){
+ e.preventDefault();
+
+ const description = $("description").value.trim();
+ const amount = Number($("amount").value);
+
+ if(!description || !Number.isFinite(amount) || amount<=0)return;
+
+ const button = this.querySelector('button[type="submit"]');
+ button.disabled = true;
+
+ try{
+  const date = new Date().toISOString();
+
+  const transaction = {
+   description,
+   amount,
+   type:currentType,
+   date,
+   createdAt:Date.now()
+  };
+
+  await userCollection("transactions").add(transaction);
+  records.unshift(transaction);
+
+  if(currentType==="transfer" && amount>=5000){
+   const reward = {
+    amount:50,
+    description:"₦50 demo reward for transfer of "+money(amount),
+    date,
+    createdAt:Date.now()
+   };
+
+   await userCollection("rewards").add(reward);
+   rewards.unshift(reward);
+   alert("Qualifying demo transfer recorded! ₦50 demo cashback added.");
+  }else if(currentType==="transfer"){
+   alert("Demo transfer recorded. Transfers below ₦5,000 do not qualify for cashback.");
+  }
+
+  this.reset();
+  closeForm();
+  render();
+
+ }catch(error){
+  alert("Could not save your transaction: "+error.message);
+ }finally{
+  button.disabled = false;
+ }
 });
 
 function showRewards(){
- document.getElementById("rewardTotal").scrollIntoView({behavior:"smooth"});
+ $("rewardTotal").scrollIntoView({behavior:"smooth"});
 }
-function saveGoal(){
- let name=document.getElementById("goalName").value.trim();
- let target=Number(document.getElementById("goalTarget").value);
- let saved=Number(document.getElementById("goalSaved").value);
- if(!name||!Number.isFinite(target)||target<=0||!Number.isFinite(saved)||saved<0){
+
+async function saveGoal(){
+ const name = $("goalName").value.trim();
+ const target = Number($("goalTarget").value);
+ const saved = Number($("goalSaved").value);
+
+ if(!name || !Number.isFinite(target) || target<=0 ||
+    !Number.isFinite(saved) || saved<0){
   alert("Enter a goal name and valid amounts.");
   return;
  }
- goal={name,target,saved};
- localStorage.setItem("gtGoal",JSON.stringify(goal));
- renderGoal();
+
+ const button = $("saveGoalBtn");
+ button.disabled = true;
+
+ try{
+  goal = {name,target,saved};
+  await userCollection("settings").doc("goal").set(goal);
+  renderGoal();
+  alert("Savings goal saved to your account.");
+ }catch(error){
+  alert("Could not save your goal: "+error.message);
+ }finally{
+  button.disabled = false;
+ }
 }
+
+$("saveGoalBtn").addEventListener("click",saveGoal);
+
 function renderGoal(){
- if(!goal)return;
- document.getElementById("goalName").value=goal.name;
- document.getElementById("goalTarget").value=goal.target;
- document.getElementById("goalSaved").value=goal.saved;
- document.getElementById("goalDisplay").textContent=
- goal.name+": "+money(goal.saved)+" saved of "+money(goal.target);
- document.getElementById("goalFill").style.width=
- Math.min(100,goal.saved/goal.target*100)+"%";
+ if(!goal){
+  $("goalDisplay").textContent = "No savings goal yet.";
+  $("goalFill").style.width = "0%";
+  return;
+ }
+
+ $("goalName").value = goal.name;
+ $("goalTarget").value = goal.target;
+ $("goalSaved").value = goal.saved;
+
+ $("goalDisplay").textContent =
+  goal.name+": "+money(goal.saved)+" saved of "+money(goal.target);
+
+ $("goalFill").style.width =
+  Math.min(100,goal.saved/goal.target*100)+"%";
 }
+
 function render(){
  let income=0,expenses=0,transfers=0;
+
  records.forEach(r=>{
-  if(r.type==="income")income+=r.amount;
-  if(r.type==="expense")expenses+=r.amount;
+  if(r.type==="income")income+=Number(r.amount);
+  if(r.type==="expense")expenses+=Number(r.amount);
   if(r.type==="transfer")transfers++;
  });
- let total=rewards.reduce((sum,r)=>sum+r.amount,0);
- document.getElementById("balance").textContent=money(income-expenses);
- document.getElementById("income").textContent=money(income);
- document.getElementById("expenses").textContent=money(expenses);
- document.getElementById("transferCount").textContent=transfers;
- document.getElementById("cashback").textContent=money(total);
- document.getElementById("rewardTotal").textContent=money(total);
 
- let history=document.getElementById("history");
- history.innerHTML="";
- if(records.length===0)history.textContent="No transactions yet.";
+ const total = rewards.reduce((sum,r)=>sum+Number(r.amount),0);
+
+ $("balance").textContent = money(income-expenses);
+ $("income").textContent = money(income);
+ $("expenses").textContent = money(expenses);
+ $("transferCount").textContent = transfers;
+ $("cashback").textContent = money(total);
+ $("rewardTotal").textContent = money(total);
+
+ const history = $("history");
+ history.replaceChildren();
+
+ if(records.length===0){
+  history.textContent = "No transactions yet.";
+ }
+
  records.forEach(r=>{
-  let item=document.createElement("div");
-  item.className="row";
-  let left=document.createElement("div");
-  let name=document.createElement("strong");
-  name.textContent=r.description;
-  let date=document.createElement("small");
-  date.textContent=r.date;
-  date.style.display="block";
+  const item = document.createElement("div");
+  item.className = "row";
+
+  const left = document.createElement("div");
+  const name = document.createElement("strong");
+  name.textContent = r.description;
+
+  const date = document.createElement("small");
+  date.textContent = new Date(r.date).toLocaleString();
+  date.style.display = "block";
+
   left.append(name,date);
-  let right=document.createElement("strong");
-  right.textContent=(r.type==="income"?"+":r.type==="expense"?"-":"Transfer ")+money(r.amount);
-  right.className=r.type==="income"?"green":r.type==="expense"?"red":"blue";
+
+  const right = document.createElement("strong");
+  right.textContent =
+   (r.type==="income"?"+":r.type==="expense"?"-":"Transfer ")+money(r.amount);
+
+  right.className =
+   r.type==="income"?"green":r.type==="expense"?"red":"blue";
+
   item.append(left,right);
   history.append(item);
  });
 
- let rewardHistory=document.getElementById("rewardHistory");
- rewardHistory.innerHTML="";
- if(rewards.length===0)rewardHistory.textContent="No cashback yet.";
+ const rewardHistory = $("rewardHistory");
+ rewardHistory.replaceChildren();
+
+ if(rewards.length===0){
+  rewardHistory.textContent = "No cashback yet.";
+ }
+
  rewards.forEach(r=>{
-  let item=document.createElement("div");
-  item.className="row";
-  let left=document.createElement("div");
-  left.textContent=r.description;
-  let right=document.createElement("strong");
-  right.className="green";
-  right.textContent="+"+money(r.amount);
+  const item = document.createElement("div");
+  item.className = "row";
+
+  const left = document.createElement("div");
+  left.textContent = r.description;
+
+  const right = document.createElement("strong");
+  right.className = "green";
+  right.textContent = "+"+money(r.amount);
+
   item.append(left,right);
   rewardHistory.append(item);
  });
 }
-render();
-renderGoal();
 </script>
 </body>
 </html>
