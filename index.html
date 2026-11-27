@@ -3,489 +3,272 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GTech Money</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTech Design Studio</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f2f5fb;color:#17243b;font-family:Arial,sans-serif}
-header{background:#0754c7;color:white;padding:24px 18px;border-radius:0 0 23px 23px}
-header strong{font-size:25px}
-header p{font-size:13px}
-main{max-width:650px;margin:auto;padding:17px}
-.card{background:white;padding:17px;border-radius:15px;margin:12px 0;box-shadow:0 3px 12px #00000008}
-.balance{background:linear-gradient(130deg,#0754c7,#1688ef);color:white;padding:23px;border-radius:18px}
-.big{font-size:30px;font-weight:bold;margin:12px 0}
-.stats,.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-small{color:#78869b}
-strong.value{display:block;font-size:18px;margin-top:8px}
-h3{font-size:17px;margin:24px 0 10px}
-button{border:0;background:#0754c7;color:white;padding:13px;border-radius:10px;font-weight:bold;cursor:pointer}
-.light{background:#e8f0ff;color:#0754c7}
-input{width:100%;padding:13px;border:1px solid #dce3ef;border-radius:9px;margin:7px 0 13px;font-size:15px}
-label{font-size:13px;color:#52617a}
-.hidden{display:none!important}
-.row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf0f5}
-.green{color:#07965b}
-.red{color:#d74455}
-.blue{color:#0875ce}
-.notice{background:#fff5d9;padding:12px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:15px}
-.bar{height:9px;background:#e5ebf4;border-radius:10px;margin-top:12px;overflow:hidden}
-.fill{height:100%;background:#0875df;width:0}
-footer{text-align:center;color:#8994a5;font-size:12px;padding:25px}
-#authMessage{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
-.auth-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#googleBtn{width:100%;margin-top:10px}
-#logoutBtn{float:right}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f3ff;color:#20203a}
+header{background:linear-gradient(120deg,#5427d8,#2675ed);color:white;padding:22px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.logo{font-size:23px;font-weight:bold}
+header a{color:white;text-decoration:none;font-weight:bold}
+.hero{text-align:center;padding:55px 18px 35px;background:linear-gradient(120deg,#eee7ff,#e4efff)}
+.hero h1{font-size:clamp(30px,6vw,48px);margin:0 0 12px}
+.hero p{color:#555;margin:0 auto 22px;max-width:540px;line-height:1.6}
+.btn{border:0;border-radius:10px;padding:12px 18px;background:#6336dc;color:white;font-weight:bold;cursor:pointer}
+.btn:hover{opacity:.88}
+.white{background:white;color:#5932c7}
+section{padding:30px 6%}
+.section-title{text-align:center;margin-bottom:22px}
+.templates{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:15px}
+.template{background:white;padding:12px;border-radius:15px;box-shadow:0 4px 15px #25205a12;cursor:pointer;text-align:center;border:2px solid transparent}
+.template:hover{border-color:#7044e5}
+.preview{height:125px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-weight:bold;font-size:20px}
+.editor{background:white;border-radius:16px;padding:18px;box-shadow:0 4px 18px #25205a12}
+.tools{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:16px}
+.tools button{border:0;background:#eee9ff;color:#5030b5;padding:10px;border-radius:8px;cursor:pointer;font-weight:bold}
+.tools input{max-width:130px}
+.canvas-wrap{background:#e8e8ee;border-radius:12px;padding:12px;display:flex;justify-content:center;overflow:hidden}
+canvas{background:white;width:100%;max-width:540px;height:auto;touch-action:none;box-shadow:0 3px 15px #0002}
+.hint{text-align:center;color:#777;font-size:13px;line-height:1.5}
+footer{text-align:center;padding:25px;background:#21154d;color:white}
+input,select{padding:9px;border:1px solid #ddd;border-radius:8px}
+@media(max-width:500px){header{padding:17px}.logo{font-size:19px}.tools button{font-size:12px;padding:9px}}
 </style>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
 
 <header>
-<strong>GTech Money</strong>
-<p>Your money. Your progress.</p>
+ <div class="logo">🎨 GTech Design Studio</div>
+ <a href="#editor">Start Designing ↓</a>
 </header>
 
-<main>
-
-<!-- LOGIN AND REGISTRATION -->
-<div class="card" id="authPanel">
-<h3>Welcome to GTech Money</h3>
-<p>Create an account or sign in to continue.</p>
-
-<label>Email address</label>
-<input id="email" type="email" placeholder="Enter your email" autocomplete="email">
-
-<label>Password</label>
-<input id="password" type="password" placeholder="Enter your password" autocomplete="current-password">
-
-<div class="auth-buttons">
-<button id="signupBtn" type="button">Create account</button>
-<button class="light" id="loginBtn" type="button">Sign in</button>
+<div class="hero">
+ <h1>Bring Your Ideas to Life.</h1>
+ <p>Create beautiful flyers, posters, birthday cards and social media designs. Your creativity starts here!</p>
+ <button class="btn" onclick="document.getElementById('editor').scrollIntoView({behavior:'smooth'})">Start Creating</button>
 </div>
 
-<button id="googleBtn" type="button">Continue with Google</button>
-<p id="authMessage" role="status"></p>
-</div>
+<section>
+ <h2 class="section-title">What can you create?</h2>
+ <div class="templates">
+  <div class="template" onclick="loadTemplate('birthday')"><div class="preview" style="background:#ffe1ee;color:#a32367">🎂<br>BIRTHDAY</div><p>Birthday Design</p></div>
+  <div class="template" onclick="loadTemplate('business')"><div class="preview" style="background:#18254b;color:#fff">YOUR<br>BUSINESS</div><p>Business Flyer</p></div>
+  <div class="template" onclick="loadTemplate('sale')"><div class="preview" style="background:#ffdf50;color:#b22d20">BIG SALE!</div><p>Sale Poster</p></div>
+  <div class="template" onclick="loadTemplate('social')"><div class="preview" style="background:#d9eaff;color:#2555a5">SOCIAL<br>POST</div><p>Social Media</p></div>
+ </div>
+</section>
 
-<!-- MAIN DASHBOARD -->
-<div id="appContent" class="hidden">
+<section id="editor">
+ <h2 class="section-title">Your Design Workspace</h2>
+ <div class="editor">
+  <div class="tools">
+   <button onclick="addText()">＋ Add Text</button>
+   <button onclick="addShape('rect')">＋ Square</button>
+   <button onclick="addShape('circle')">＋ Circle</button>
+   <button onclick="document.getElementById('photo').click()">＋ Add Photo</button>
+   <button onclick="deleteSelected()">Delete Selected</button>
+   <button onclick="downloadDesign()">⬇ Download PNG</button>
+   <input type="file" id="photo" accept="image/*" hidden>
+  </div>
+  <div class="tools">
+   <label>Background <input type="color" id="bg" value="#ffffff"></label>
+   <label>Text colour <input type="color" id="txtColor" value="#20203a"></label>
+   <label>Text size <input type="number" id="txtSize" value="48" min="10" max="180" style="width:70px"></label>
+   <button onclick="applyTextStyle()">Apply Text Style</button>
+  </div>
+  <div class="tools">
+   <input id="editText" placeholder="Type to edit selected text">
+   <button onclick="applyText()">Update Text</button>
+  </div>
+  <div class="canvas-wrap">
+   <canvas id="design" width="1080" height="1080"></canvas>
+  </div>
+  <p class="hint">Tap an item to select it. Drag it to move it. Add your own photos and text, then download your design.</p>
+ </div>
+</section>
 
-<div class="card">
-<strong id="welcomeUser">Welcome!</strong>
-<button id="logoutBtn" class="light" type="button">Sign out</button>
-<div style="clear:both"></div>
-</div>
-
-<div class="balance">
-<small style="color:white">Available demo balance</small>
-<div class="big" id="balance">₦0.00</div>
-<small style="color:white">Personal finance tracker</small>
-</div>
-
-<div class="stats">
-<div class="card"><small>Total income</small><strong class="value green" id="income">₦0</strong></div>
-<div class="card"><small>Total expenses</small><strong class="value red" id="expenses">₦0</strong></div>
-<div class="card"><small>Transfers recorded</small><strong class="value" id="transferCount">0</strong></div>
-<div class="card"><small>Cashback earned</small><strong class="value blue" id="cashback">₦0</strong></div>
-</div>
-
-<h3>Quick actions</h3>
-<div class="actions">
-<button onclick="openForm('income')">+ Add income</button>
-<button class="light" onclick="openForm('expense')">− Add expense</button>
-<button class="light" onclick="openForm('transfer')">↗ Demo transfer</button>
-<button class="light" onclick="showRewards()">★ Cashback</button>
-</div>
-
-<div class="card hidden" id="formPanel">
-<h3 id="formTitle">Add transaction</h3>
-<form id="transactionForm">
-<label>Description or recipient</label>
-<input id="description" required placeholder="Enter description">
-<label>Amount (₦)</label>
-<input id="amount" type="number" min="1" step="0.01" required placeholder="Enter amount">
-<button type="submit">Save</button>
-<button type="button" class="light" onclick="closeForm()">Cancel</button>
-</form>
-</div>
-
-<h3>Cashback services</h3>
-<div class="card">
-<small>Total demo cashback</small>
-<div class="big blue" id="rewardTotal">₦0.00</div>
-<p>Transfer ₦5,000 or more to qualify for ₦50 demo cashback.</p>
-<div class="notice">Cashback is simulated only. No real transfer or reward payment takes place.</div>
-<h3>Cashback history</h3>
-<div id="rewardHistory">No cashback yet.</div>
-</div>
-
-<h3>My savings goal</h3>
-<div class="card">
-<label>Goal name</label>
-<input id="goalName" placeholder="e.g. New laptop">
-<label>Target amount (₦)</label>
-<input id="goalTarget" type="number" min="1" placeholder="Target amount">
-<label>Amount saved (₦)</label>
-<input id="goalSaved" type="number" min="0" placeholder="Amount saved">
-<button id="saveGoalBtn" type="button">Save goal</button>
-<p id="goalDisplay">No savings goal yet.</p>
-<div class="bar"><div class="fill" id="goalFill"></div></div>
-</div>
-
-<h3>Transaction history</h3>
-<div class="card" id="history">No transactions yet.</div>
-
-<div class="notice">
-<strong>Important:</strong> GTech Money is a personal finance demo. It does not hold money, send real transfers or pay real cashback. Real payment services require a licensed payment partner.
-</div>
-
-</div>
-
-<footer>GTech Money © 2026</footer>
-</main>
+<footer>
+ <h3>GTech Design Studio</h3>
+ <p>Your ideas. Your creativity. Your designs.</p>
+ <p>© 2026 GTech Design Studio</p>
+</footer>
 
 <script>
-/* YOUR FIREBASE CONFIGURATION */
-const firebaseConfig = {
- apiKey: "AIzaSyCvKoVkAx42b472McLgToVK7XQDEgwhpNU",
- authDomain: "gtech-gub.firebaseapp.com",
- projectId: "gtech-gub",
- storageBucket: "gtech-gub.firebasestorage.app",
- messagingSenderId: "444882764575",
- appId: "1:444882764575:web:d561cd8e9ef95ce8b3a62a"
-};
+const canvas=document.getElementById('design');
+const ctx=canvas.getContext('2d');
+let items=[];
+let selected=-1;
+let background='#ffffff';
+let dragging=false;
+let dragOffset={x:0,y:0};
 
-/* CONNECT TO FIREBASE */
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.firestore();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-let records = [];
-let rewards = [];
-let goal = null;
-let currentType = "income";
-let currentUser = null;
-
-const $ = id => document.getElementById(id);
-
-function money(n){
- return "₦"+Number(n).toLocaleString("en-NG",{
-  minimumFractionDigits:2,
-  maximumFractionDigits:2
- });
+function addText(text='YOUR TEXT HERE',x=540,y=500,size=65,color='#20203a'){
+ items.push({type:'text',text,x,y,size,color});
+ selected=items.length-1;
+ draw();
 }
-
-function showMessage(message){
- $("authMessage").textContent = message;
+function addShape(type){
+ items.push({type,x:540,y:540,w:300,h:220,color:'#7044e5'});
+ selected=items.length-1;
+ draw();
 }
-
-function setAuthBusy(busy){
- ["signupBtn","loginBtn","googleBtn"].forEach(id=>{
-  $(id).disabled = busy;
- });
-}
-
-async function register(){
- const email = $("email").value.trim();
- const password = $("password").value;
-
- if(!email || password.length < 6){
-  showMessage("Enter a valid email and a password of at least 6 characters.");
-  return;
- }
-
- try{
-  setAuthBusy(true);
-  await auth.createUserWithEmailAndPassword(email,password);
-  showMessage("Account created successfully.");
- }catch(error){
-  showMessage(error.message);
- }finally{
-  setAuthBusy(false);
- }
-}
-
-async function login(){
- const email = $("email").value.trim();
- const password = $("password").value;
-
- if(!email || !password){
-  showMessage("Enter your email and password.");
-  return;
- }
-
- try{
-  setAuthBusy(true);
-  await auth.signInWithEmailAndPassword(email,password);
- }catch(error){
-  showMessage(error.message);
- }finally{
-  setAuthBusy(false);
- }
-}
-
-async function googleLogin(){
- try{
-  setAuthBusy(true);
-  await auth.signInWithRedirect(googleProvider);
- }catch(error){
-  showMessage(error.message);
-  setAuthBusy(false);
- }
-}
-
-async function logout(){
- await auth.signOut();
-}
-
-$("signupBtn").addEventListener("click",register);
-$("loginBtn").addEventListener("click",login);
-$("googleBtn").addEventListener("click",googleLogin);
-$("logoutBtn").addEventListener("click",logout);
-
-auth.onAuthStateChanged(async user=>{
- currentUser = user;
-
- if(!user){
-  $("authPanel").classList.remove("hidden");
-  $("appContent").classList.add("hidden");
-  return;
- }
-
- try{
-  $("authPanel").classList.add("hidden");
-  $("appContent").classList.remove("hidden");
-  $("welcomeUser").textContent = "Welcome, "+(user.displayName || user.email || "User");
-
-  const profile = db.collection("users").doc(user.uid);
-
-  await profile.set({
-   email:user.email || "",
-   displayName:user.displayName || "",
-   updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-  },{merge:true});
-
-  await loadData();
-  render();
-  renderGoal();
-
- }catch(error){
-  alert("Could not load your cloud data: "+error.message);
- }
-});
-
-function userCollection(name){
- if(!currentUser) throw new Error("Please sign in first.");
- return db.collection("users").doc(currentUser.uid).collection(name);
-}
-
-async function loadData(){
- const [transactionDocs,rewardDocs,goalDoc] = await Promise.all([
-  userCollection("transactions").orderBy("createdAt","desc").get(),
-  userCollection("rewards").orderBy("createdAt","desc").get(),
-  userCollection("settings").doc("goal").get()
- ]);
-
- records = transactionDocs.docs.map(doc=>doc.data());
- rewards = rewardDocs.docs.map(doc=>doc.data());
- goal = goalDoc.exists ? goalDoc.data() : null;
-}
-
-function openForm(type){
- currentType = type;
- $("formTitle").textContent =
-  type==="income" ? "Add income" :
-  type==="expense" ? "Add expense" :
-  "Record demo transfer";
- $("formPanel").classList.remove("hidden");
-}
-
-function closeForm(){
- $("formPanel").classList.add("hidden");
-}
-
-$("transactionForm").addEventListener("submit",async function(e){
- e.preventDefault();
-
- const description = $("description").value.trim();
- const amount = Number($("amount").value);
-
- if(!description || !Number.isFinite(amount) || amount<=0)return;
-
- const button = this.querySelector('button[type="submit"]');
- button.disabled = true;
-
- try{
-  const date = new Date().toISOString();
-
-  const transaction = {
-   description,
-   amount,
-   type:currentType,
-   date,
-   createdAt:Date.now()
-  };
-
-  await userCollection("transactions").add(transaction);
-  records.unshift(transaction);
-
-  if(currentType==="transfer" && amount>=5000){
-   const reward = {
-    amount:50,
-    description:"₦50 demo reward for transfer of "+money(amount),
-    date,
-    createdAt:Date.now()
-   };
-
-   await userCollection("rewards").add(reward);
-   rewards.unshift(reward);
-   alert("Qualifying demo transfer recorded! ₦50 demo cashback added.");
-  }else if(currentType==="transfer"){
-   alert("Demo transfer recorded. Transfers below ₦5,000 do not qualify for cashback.");
+function draw(){
+ ctx.clearRect(0,0,1080,1080);
+ ctx.fillStyle=background;
+ ctx.fillRect(0,0,1080,1080);
+ items.forEach((item,i)=>{
+  ctx.save();
+  if(item.type==='text'){
+   ctx.font=`bold ${item.size}px Arial`;
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.fillStyle=item.color;
+   ctx.fillText(item.text,item.x,item.y,950);
+  }else if(item.type==='rect'){
+   ctx.fillStyle=item.color;
+   ctx.fillRect(item.x-item.w/2,item.y-item.h/2,item.w,item.h);
+  }else if(item.type==='circle'){
+   ctx.fillStyle=item.color;
+   ctx.beginPath();
+   ctx.arc(item.x,item.y,item.w/2,0,Math.PI*2);
+   ctx.fill();
+  }else if(item.type==='image' && item.image){
+   ctx.drawImage(item.image,item.x-item.w/2,item.y-item.h/2,item.w,item.h);
   }
-
-  this.reset();
-  closeForm();
-  render();
-
- }catch(error){
-  alert("Could not save your transaction: "+error.message);
- }finally{
-  button.disabled = false;
- }
+  if(i===selected){
+   ctx.strokeStyle='#ef3eac';
+   ctx.lineWidth=5;
+   ctx.setLineDash([12,8]);
+   if(item.type==='text'){
+    ctx.font=`bold ${item.size}px Arial`;
+    const w=Math.min(ctx.measureText(item.text).width,950);
+    ctx.strokeRect(item.x-w/2-12,item.y-item.size/2-12,w+24,item.size+24);
+   }else{
+    ctx.strokeRect(item.x-item.w/2-5,item.y-item.h/2-5,item.w+10,item.h+10);
+   }
+  }
+  ctx.restore();
+ });
+}
+function addTextFromPrompt(){
+ const value=prompt('What text do you want to add?');
+ if(value)addText(value);
+}
+function addText(){addTextFromPrompt()}
+function deleteSelected(){
+ if(selected<0)return alert('Select an item first.');
+ items.splice(selected,1);
+ selected=-1;
+ draw();
+}
+function applyText(){
+ if(selected<0 || items[selected].type!=='text')return alert('Select a text item first.');
+ items[selected].text=document.getElementById('editText').value;
+ draw();
+}
+function applyTextStyle(){
+ if(selected<0 || items[selected].type!=='text')return alert('Select a text item first.');
+ items[selected].color=document.getElementById('txtColor').value;
+ items[selected].size=Math.max(10,Math.min(180,Number(document.getElementById('txtSize').value)||48));
+ draw();
+}
+document.getElementById('bg').addEventListener('input',e=>{
+ background=e.target.value;
+ draw();
 });
-
-function showRewards(){
- $("rewardTotal").scrollIntoView({behavior:"smooth"});
+document.getElementById('photo').addEventListener('change',e=>{
+ const file=e.target.files[0];
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  const img=new Image();
+  img.onload=()=>{
+   const ratio=Math.min(650/img.width,650/img.height);
+   items.push({type:'image',image:img,x:540,y:540,w:img.width*ratio,h:img.height*ratio});
+   selected=items.length-1;
+   draw();
+  };
+  img.src=reader.result;
+ };
+ reader.readAsDataURL(file);
+ e.target.value='';
+});
+function loadTemplate(name){
+ items=[];
+ background='#ffffff';
+ if(name==='birthday'){
+  background='#ffe1ee';
+  addText('HAPPY',540,330,105,'#b52770');
+  addText('BIRTHDAY!',540,460,105,'#b52770');
+  addText('WISHING YOU THE BEST',540,600,40,'#6e3154');
+ }else if(name==='business'){
+  background='#18254b';
+  addText('YOUR BUSINESS',540,390,85,'#ffffff');
+  addText('Quality you can trust',540,520,48,'#f7d77a');
+  addText('CONTACT US TODAY',540,690,40,'#ffffff');
+ }else if(name==='sale'){
+  background='#ffdf50';
+  addText('BIG SALE!',540,390,120,'#b22d20');
+  addText('SPECIAL OFFERS',540,540,65,'#222222');
+  addText('SHOP NOW',540,690,55,'#b22d20');
+ }else{
+  background='#d9eaff';
+  addText('YOUR IDEA',540,390,100,'#2555a5');
+  addText('MAKE IT HAPPEN',540,540,65,'#20203a');
+ }
+ document.getElementById('bg').value=background;
+ selected=-1;
+ draw();
 }
-
-async function saveGoal(){
- const name = $("goalName").value.trim();
- const target = Number($("goalTarget").value);
- const saved = Number($("goalSaved").value);
-
- if(!name || !Number.isFinite(target) || target<=0 ||
-    !Number.isFinite(saved) || saved<0){
-  alert("Enter a goal name and valid amounts.");
-  return;
- }
-
- const button = $("saveGoalBtn");
- button.disabled = true;
-
- try{
-  goal = {name,target,saved};
-  await userCollection("settings").doc("goal").set(goal);
-  renderGoal();
-  alert("Savings goal saved to your account.");
- }catch(error){
-  alert("Could not save your goal: "+error.message);
- }finally{
-  button.disabled = false;
- }
+function downloadDesign(){
+ selected=-1;
+ draw();
+ const link=document.createElement('a');
+ link.download='gtech-design.png';
+ link.href=canvas.toDataURL('image/png');
+ link.click();
 }
-
-$("saveGoalBtn").addEventListener("click",saveGoal);
-
-function renderGoal(){
- if(!goal){
-  $("goalDisplay").textContent = "No savings goal yet.";
-  $("goalFill").style.width = "0%";
-  return;
- }
-
- $("goalName").value = goal.name;
- $("goalTarget").value = goal.target;
- $("goalSaved").value = goal.saved;
-
- $("goalDisplay").textContent =
-  goal.name+": "+money(goal.saved)+" saved of "+money(goal.target);
-
- $("goalFill").style.width =
-  Math.min(100,goal.saved/goal.target*100)+"%";
+function getPosition(e){
+ const rect=canvas.getBoundingClientRect();
+ return {x:(e.clientX-rect.left)*1080/rect.width,y:(e.clientY-rect.top)*1080/rect.height};
 }
-
-function render(){
- let income=0,expenses=0,transfers=0;
-
- records.forEach(r=>{
-  if(r.type==="income")income+=Number(r.amount);
-  if(r.type==="expense")expenses+=Number(r.amount);
-  if(r.type==="transfer")transfers++;
- });
-
- const total = rewards.reduce((sum,r)=>sum+Number(r.amount),0);
-
- $("balance").textContent = money(income-expenses);
- $("income").textContent = money(income);
- $("expenses").textContent = money(expenses);
- $("transferCount").textContent = transfers;
- $("cashback").textContent = money(total);
- $("rewardTotal").textContent = money(total);
-
- const history = $("history");
- history.replaceChildren();
-
- if(records.length===0){
-  history.textContent = "No transactions yet.";
+function hitTest(p,item){
+ if(item.type==='text'){
+  ctx.font=`bold ${item.size}px Arial`;
+  const w=Math.min(ctx.measureText(item.text).width,950);
+  return p.x>=item.x-w/2-15 && p.x<=item.x+w/2+15 && p.y>=item.y-item.size/2-15 && p.y<=item.y+item.size/2+15;
  }
-
- records.forEach(r=>{
-  const item = document.createElement("div");
-  item.className = "row";
-
-  const left = document.createElement("div");
-  const name = document.createElement("strong");
-  name.textContent = r.description;
-
-  const date = document.createElement("small");
-  date.textContent = new Date(r.date).toLocaleString();
-  date.style.display = "block";
-
-  left.append(name,date);
-
-  const right = document.createElement("strong");
-  right.textContent =
-   (r.type==="income"?"+":r.type==="expense"?"-":"Transfer ")+money(r.amount);
-
-  right.className =
-   r.type==="income"?"green":r.type==="expense"?"red":"blue";
-
-  item.append(left,right);
-  history.append(item);
- });
-
- const rewardHistory = $("rewardHistory");
- rewardHistory.replaceChildren();
-
- if(rewards.length===0){
-  rewardHistory.textContent = "No cashback yet.";
- }
-
- rewards.forEach(r=>{
-  const item = document.createElement("div");
-  item.className = "row";
-
-  const left = document.createElement("div");
-  left.textContent = r.description;
-
-  const right = document.createElement("strong");
-  right.className = "green";
-  right.textContent = "+"+money(r.amount);
-
-  item.append(left,right);
-  rewardHistory.append(item);
- });
+ return p.x>=item.x-item.w/2 && p.x<=item.x+item.w/2 && p.y>=item.y-item.h/2 && p.y<=item.y+item.h/2;
 }
+canvas.addEventListener('pointerdown',e=>{
+ const p=getPosition(e);
+ selected=-1;
+ for(let i=items.length-1;i>=0;i--){
+  if(hitTest(p,items[i])){selected=i;break;}
+ }
+ if(selected>=0){
+  dragging=true;
+  dragOffset.x=p.x-items[selected].x;
+  dragOffset.y=p.y-items[selected].y;
+  canvas.setPointerCapture(e.pointerId);
+  if(items[selected].type==='text'){
+   document.getElementById('editText').value=items[selected].text;
+   document.getElementById('txtColor').value=items[selected].color;
+   document.getElementById('txtSize').value=items[selected].size;
+  }
+ }
+ draw();
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!dragging||selected<0)return;
+ const p=getPosition(e);
+ items[selected].x=p.x-dragOffset.x;
+ items[selected].y=p.y-dragOffset.y;
+ draw();
+});
+canvas.addEventListener('pointerup',()=>dragging=false);
+canvas.addEventListener('pointercancel',()=>dragging=false);
+draw();
 </script>
 </body>
 </html>
